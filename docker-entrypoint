@@ -2,16 +2,20 @@
 
 case $ROLE in
   "api")
-    uvicorn --host="0.0.0.0" openf1.services.query_api.app:app --reload
+    # Railway e outras plataformas injetam PORT; Docker local usa 8000 por omissão.
+    uvicorn --host="0.0.0.0" --port="${PORT:-8000}" openf1.services.query_api.app:app --reload
     ;;
   "ingest-realtime")
     sleep 2
     python -m openf1.services.ingestor_livetiming.real_time.app
     ;;
   "ingest-historical")
+    # Sem get-schedule aqui: imprime JSON gigante e estoura o rate limit de logs da Railway.
+    # ingest-season obtém o calendário por API interna.
     YEAR=$(date +"%Y")
-    python -m openf1.services.ingestor_livetiming.historical.main get-schedule $YEAR
-    python -m openf1.services.ingestor_livetiming.historical.main ingest-season $YEAR
+    export TQDM_DISABLE=1
+    export LOGURU_LEVEL="${LOGURU_LEVEL:-WARNING}"
+    python -m openf1.services.ingestor_livetiming.historical.main ingest-season "$YEAR"
     ;;
   "scrape-latest")
     sleep 2 # api needs to be fully up before this will work
