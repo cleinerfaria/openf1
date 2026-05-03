@@ -186,6 +186,12 @@ def _parse_page(html_file: Path) -> list[dict]:
         soup = BeautifulSoup(f, "lxml")
 
     table = soup.find("table", class_="Table-module_table__cKsW2")
+    if table is None:
+        logger.error(
+            "Session result: results table not found (formula1.com layout may have changed)."
+        )
+        raise ValueError("session result table not found")
+
     raw_results = _extract_raw_results(table)
 
     is_qualifying = "Q1" in raw_results[0]

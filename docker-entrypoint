@@ -1,5 +1,10 @@
 #! /usr/bin/env sh
 
+# Loguru: com diagnose/backtrace ativos, tracebacks incluem variáveis locais
+# (ex.: HTML inteiro da F1) e a Railway corta a >500 logs/s — evita "crash" por limite.
+export LOGURU_DIAGNOSE="${LOGURU_DIAGNOSE:-0}"
+export LOGURU_BACKTRACE="${LOGURU_BACKTRACE:-0}"
+
 case $ROLE in
   "api")
     # Railway e outras plataformas injetam PORT; Docker local usa 8000 por omissão.
@@ -19,6 +24,7 @@ case $ROLE in
     ;;
   "scrape-latest")
     sleep 2 # api needs to be fully up before this will work
+    export TQDM_DISABLE=1
     python -m openf1.services.f1_scraping.schedule ingest-meetings
     python -m openf1.services.f1_scraping.schedule ingest-sessions
     python -m openf1.services.f1_scraping.session_result

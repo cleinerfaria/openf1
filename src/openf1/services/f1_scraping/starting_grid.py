@@ -23,6 +23,12 @@ def _parse_starting_grid_page(html_file: Path) -> list[dict]:
 
     soup = BeautifulSoup(html_content, "lxml")
     table = soup.find("table", class_="Table-module_table__cKsW2")
+    if table is None:
+        logger.error(
+            "Starting grid: results table not found (formula1.com layout may have changed)."
+        )
+        raise ValueError("starting grid table not found")
+
     headers = [
         header.get_text(strip=True).upper()
         for header in table.find("thead").find_all("th")
